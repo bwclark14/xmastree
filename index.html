@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Christmas Tree Builder</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/skulpt/1.2.0/skulpt-stdlib.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Python Christmas Tree Builder</h1>
+        <p>Learn Python step-by-step by creating your animated Christmas tree!</p>
+    </header>
+    <main>
+        <div class="container">
+            <!-- Instructions Section -->
+            <section id="instructions">
+                <h2>Step 1: Draw the Tree</h2>
+                <p>
+                    Let's start by drawing a green triangle to represent the tree. 
+                    Use the `turtle` module to draw a filled triangle.
+                </p>
+            </section>
+            
+            <!-- Code Editor -->
+            <section id="editor">
+                <textarea id="code" rows="15" spellcheck="false">
+import turtle
+t = turtle.Turtle()
+
+# Draw the tree
+t.begin_fill()
+t.color("green")
+for _ in range(3):  # Draw a triangle
+    t.forward(100)
+    t.left(120)
+t.end_fill()
+turtle.done()
+                </textarea>
+                <button id="run-btn">Run Code</button>
+            </section>
+            
+            <!-- Output Preview -->
+            <section id="output">
+                <iframe id="preview" sandbox="allow-scripts"></iframe>
+            </section>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
