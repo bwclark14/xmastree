@@ -1,21 +1,20 @@
-// Initialize the p5.js sketch
 let sketch = (p) => {
-    let commands = []; // List of drawing commands
-    let currentX, currentY; // Current position
-    let currentAngle = 0; // Current angle
-    let isFilling = false; // Fill state
+    let currentX, currentY; // Current drawing position
+    let currentAngle = 0; // Current drawing angle
+    let isFilling = false; // Whether to fill shapes
     let fillColor = "green"; // Current fill color
+    let commands = []; // Parsed commands
 
     p.setup = () => {
-        // Create the canvas
         let canvas = p.createCanvas(400, 400);
         canvas.parent("output");
         p.angleMode(p.DEGREES);
         p.background(240);
 
-        // Initial drawing position (center bottom of the canvas)
+        // Start drawing position: bottom center of the canvas
         currentX = p.width / 2;
         currentY = p.height - 50;
+        p.noLoop(); // Draw only on command
     };
 
     const executeCommands = () => {
@@ -28,40 +27,39 @@ let sketch = (p) => {
             p.noFill();
         }
 
-        p.beginShape();
-        p.resetMatrix();
-        p.translate(currentX, currentY);
+        // Reset to starting position
+        let x = currentX;
+        let y = currentY;
+        let angle = currentAngle;
 
-        // Execute commands
         for (let cmd of commands) {
             if (cmd.type === "forward") {
-                let newX = currentX + cmd.value * p.cos(currentAngle);
-                let newY = currentY - cmd.value * p.sin(currentAngle);
-                p.line(currentX, currentY, newX, newY);
-                currentX = newX;
-                currentY = newY;
+                let newX = x + cmd.value * p.cos(angle);
+                let newY = y - cmd.value * p.sin(angle);
+                p.line(x, y, newX, newY); // Draw the line
+                x = newX;
+                y = newY;
             } else if (cmd.type === "left") {
-                currentAngle -= cmd.value;
+                angle -= cmd.value; // Rotate counter-clockwise
             } else if (cmd.type === "right") {
-                currentAngle += cmd.value;
+                angle += cmd.value; // Rotate clockwise
             } else if (cmd.type === "color") {
                 fillColor = cmd.value;
                 p.fill(fillColor);
             }
         }
-        p.endShape(p.CLOSE);
     };
 
     window.runCode = (code) => {
-        // Reset state
-        commands = [];
+        // Reset initial state
         currentX = p.width / 2;
         currentY = p.height - 50;
         currentAngle = 0;
         isFilling = false;
         fillColor = "green";
+        commands = [];
 
-        // Parse the code
+        // Parse the input code
         const lines = code.split("\n");
         for (let line of lines) {
             line = line.trim();
@@ -84,12 +82,12 @@ let sketch = (p) => {
             }
         }
 
-        // Execute parsed commands
+        // Draw the parsed commands
         executeCommands();
     };
 };
 
-// Attach the p5.js sketch
+// Attach the sketch to the canvas
 new p5(sketch);
 
 // Attach the "Run Code" functionality to the button
