@@ -1,77 +1,91 @@
-// Initialize p5.js sketch
+// Initialize the p5.js sketch
 let sketch = (p) => {
-    let commands = [];
-    let isFilling = false;
-    let fillColor = "green";
+    let commands = []; // List of drawing commands
+    let currentX, currentY; // Current position
+    let currentAngle = 0; // Current angle
+    let isFilling = false; // Fill state
+    let fillColor = "green"; // Current fill color
 
     p.setup = () => {
-        // Create canvas
+        // Create the canvas
         let canvas = p.createCanvas(400, 400);
         canvas.parent("output");
         p.angleMode(p.DEGREES);
         p.background(240);
+
+        // Initial drawing position (center bottom of the canvas)
+        currentX = p.width / 2;
+        currentY = p.height - 50;
     };
 
-    p.draw = () => {
-        // Clear the canvas
-        p.background(240);
+    const executeCommands = () => {
+        p.clear(); // Clear the canvas
+        p.background(240); // Reset background
 
-        // Start filling if applicable
         if (isFilling) {
             p.fill(fillColor);
         } else {
             p.noFill();
         }
 
-        // Reset the drawing position
-        p.resetMatrix();
-        p.translate(p.width / 2, p.height - 50); // Start from the bottom center
-
-        // Execute each command
         p.beginShape();
+        p.resetMatrix();
+        p.translate(currentX, currentY);
+
+        // Execute commands
         for (let cmd of commands) {
             if (cmd.type === "forward") {
-                p.vertex(0, 0);
-                p.translate(cmd.value, 0);
+                let newX = currentX + cmd.value * p.cos(currentAngle);
+                let newY = currentY - cmd.value * p.sin(currentAngle);
+                p.line(currentX, currentY, newX, newY);
+                currentX = newX;
+                currentY = newY;
             } else if (cmd.type === "left") {
-                p.rotate(-cmd.value);
+                currentAngle -= cmd.value;
             } else if (cmd.type === "right") {
-                p.rotate(cmd.value);
+                currentAngle += cmd.value;
             } else if (cmd.type === "color") {
                 fillColor = cmd.value;
+                p.fill(fillColor);
             }
         }
         p.endShape(p.CLOSE);
     };
 
-    // Process the Python-like code into commands
     window.runCode = (code) => {
+        // Reset state
         commands = [];
+        currentX = p.width / 2;
+        currentY = p.height - 50;
+        currentAngle = 0;
         isFilling = false;
+        fillColor = "green";
 
-        let lines = code.split("\n");
+        // Parse the code
+        const lines = code.split("\n");
         for (let line of lines) {
             line = line.trim();
             if (line.startsWith("forward(")) {
-                let value = parseInt(line.match(/forward\((\d+)\)/)[1], 10);
+                const value = parseInt(line.match(/forward\((\d+)\)/)[1], 10);
                 commands.push({ type: "forward", value });
             } else if (line.startsWith("left(")) {
-                let value = parseInt(line.match(/left\((\d+)\)/)[1], 10);
+                const value = parseInt(line.match(/left\((\d+)\)/)[1], 10);
                 commands.push({ type: "left", value });
             } else if (line.startsWith("right(")) {
-                let value = parseInt(line.match(/right\((\d+)\)/)[1], 10);
+                const value = parseInt(line.match(/right\((\d+)\)/)[1], 10);
                 commands.push({ type: "right", value });
             } else if (line.startsWith("begin_fill()")) {
                 isFilling = true;
             } else if (line.startsWith("end_fill()")) {
                 isFilling = false;
             } else if (line.startsWith("color(")) {
-                let value = line.match(/color\(["'](.*?)["']\)/)[1];
+                const value = line.match(/color\(["'](.*?)["']\)/)[1];
                 commands.push({ type: "color", value });
             }
         }
 
-        p.redraw();
+        // Execute parsed commands
+        executeCommands();
     };
 };
 
@@ -80,4 +94,6 @@ new p5(sketch);
 
 // Attach the "Run Code" functionality to the button
 document.getElementById("run-btn").addEventListener("click", () => {
-    const
+    const code = document.getElementById("code").value;
+    runCode(code);
+});
