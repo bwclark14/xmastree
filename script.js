@@ -1,37 +1,54 @@
-// Initialize the p5.js canvas
+// Initialize p5.js sketch
 let sketch = (p) => {
     let commands = [];
     let isFilling = false;
+    let fillColor = "green";
 
     p.setup = () => {
+        // Create canvas
         let canvas = p.createCanvas(400, 400);
         canvas.parent("output");
+        p.angleMode(p.DEGREES);
         p.background(240);
     };
 
     p.draw = () => {
-        p.noLoop();
+        // Clear the canvas
         p.background(240);
-        p.fill(isFilling ? p.color("green") : p.color(240));
+
+        // Start filling if applicable
+        if (isFilling) {
+            p.fill(fillColor);
+        } else {
+            p.noFill();
+        }
+
+        // Reset the drawing position
+        p.resetMatrix();
+        p.translate(p.width / 2, p.height - 50); // Start from the bottom center
+
+        // Execute each command
         p.beginShape();
         for (let cmd of commands) {
             if (cmd.type === "forward") {
-                p.translate(cmd.value, 0);
                 p.vertex(0, 0);
+                p.translate(cmd.value, 0);
             } else if (cmd.type === "left") {
-                p.rotate(p.radians(-cmd.value));
+                p.rotate(-cmd.value);
             } else if (cmd.type === "right") {
-                p.rotate(p.radians(cmd.value));
+                p.rotate(cmd.value);
+            } else if (cmd.type === "color") {
+                fillColor = cmd.value;
             }
         }
         p.endShape(p.CLOSE);
     };
 
+    // Process the Python-like code into commands
     window.runCode = (code) => {
         commands = [];
         isFilling = false;
 
-        // Simulate Python-like commands
         let lines = code.split("\n");
         for (let line of lines) {
             line = line.trim();
@@ -48,16 +65,19 @@ let sketch = (p) => {
                 isFilling = true;
             } else if (line.startsWith("end_fill()")) {
                 isFilling = false;
+            } else if (line.startsWith("color(")) {
+                let value = line.match(/color\(["'](.*?)["']\)/)[1];
+                commands.push({ type: "color", value });
             }
         }
+
         p.redraw();
     };
 };
 
+// Attach the p5.js sketch
 new p5(sketch);
 
 // Attach the "Run Code" functionality to the button
 document.getElementById("run-btn").addEventListener("click", () => {
-    const code = document.getElementById("code").value;
-    runCode(code);
-});
+    const
