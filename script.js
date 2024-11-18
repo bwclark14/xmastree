@@ -1,31 +1,63 @@
-// Function to run Python code using Skulpt
-function runPythonCode() {
-    const code = document.getElementById('code').value;
-    const outputFrame = document.getElementById('preview').contentWindow.document;
+// Initialize the p5.js canvas
+let sketch = (p) => {
+    let commands = [];
+    let isFilling = false;
 
-    outputFrame.open();
-    outputFrame.write('<html><body></body></html>');
-    outputFrame.close();
+    p.setup = () => {
+        let canvas = p.createCanvas(400, 400);
+        canvas.parent("output");
+        p.background(240);
+    };
 
-    Sk.configure({
-        output: function (text) {
-            const body = outputFrame.body || outputFrame.getElementsByTagName('body')[0];
-            body.innerHTML += text.replace(/\n/g, '<br>');
-        },
-        read: function (filename) {
-            if (Sk.builtinFiles === undefined || Sk.builtinFiles['files'][filename] === undefined) {
-                throw `File not found: '${filename}'`;
+    p.draw = () => {
+        p.noLoop();
+        p.background(240);
+        p.fill(isFilling ? p.color("green") : p.color(240));
+        p.beginShape();
+        for (let cmd of commands) {
+            if (cmd.type === "forward") {
+                p.translate(cmd.value, 0);
+                p.vertex(0, 0);
+            } else if (cmd.type === "left") {
+                p.rotate(p.radians(-cmd.value));
+            } else if (cmd.type === "right") {
+                p.rotate(p.radians(cmd.value));
             }
-            return Sk.builtinFiles['files'][filename];
-        },
-    });
+        }
+        p.endShape(p.CLOSE);
+    };
 
-    Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true))
-        .then(() => console.log('Code executed successfully'))
-        .catch(err => {
-            const body = outputFrame.body || outputFrame.getElementsByTagName('body')[0];
-            body.innerHTML += `<span style="color: red;">${err.toString()}</span>`;
-        });
-}
+    window.runCode = (code) => {
+        commands = [];
+        isFilling = false;
 
-document.getElementById('run-btn').addEventListener('click', runPythonCode);
+        // Simulate Python-like commands
+        let lines = code.split("\n");
+        for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith("forward(")) {
+                let value = parseInt(line.match(/forward\((\d+)\)/)[1], 10);
+                commands.push({ type: "forward", value });
+            } else if (line.startsWith("left(")) {
+                let value = parseInt(line.match(/left\((\d+)\)/)[1], 10);
+                commands.push({ type: "left", value });
+            } else if (line.startsWith("right(")) {
+                let value = parseInt(line.match(/right\((\d+)\)/)[1], 10);
+                commands.push({ type: "right", value });
+            } else if (line.startsWith("begin_fill()")) {
+                isFilling = true;
+            } else if (line.startsWith("end_fill()")) {
+                isFilling = false;
+            }
+        }
+        p.redraw();
+    };
+};
+
+new p5(sketch);
+
+// Attach the "Run Code" functionality to the button
+document.getElementById("run-btn").addEventListener("click", () => {
+    const code = document.getElementById("code").value;
+    runCode(code);
+});
