@@ -21,6 +21,7 @@ let sketch = (p) => {
         p.clear(); // Clear the canvas
         p.background(240); // Reset background
 
+        // Prepare for filling
         if (isFilling) {
             p.fill(fillColor);
         } else {
@@ -28,25 +29,42 @@ let sketch = (p) => {
         }
 
         // Reset to starting position
-        let x = currentX;
-        let y = currentY;
-        let angle = currentAngle;
+        currentX = p.width / 2;
+        currentY = p.height - 50;
+        currentAngle = 0;
 
+        // Start filling if required
+        if (isFilling) {
+            p.beginShape();
+        }
+
+        // Execute commands
         for (let cmd of commands) {
             if (cmd.type === "forward") {
-                let newX = x + cmd.value * p.cos(angle);
-                let newY = y - cmd.value * p.sin(angle);
-                p.line(x, y, newX, newY); // Draw the line
-                x = newX;
-                y = newY;
+                let newX = currentX + cmd.value * p.cos(currentAngle);
+                let newY = currentY - cmd.value * p.sin(currentAngle);
+                p.line(currentX, currentY, newX, newY);
+                if (isFilling) {
+                    p.vertex(currentX, currentY); // Add vertices for fill
+                }
+                currentX = newX;
+                currentY = newY;
             } else if (cmd.type === "left") {
-                angle -= cmd.value; // Rotate counter-clockwise
+                currentAngle -= cmd.value; // Rotate counter-clockwise
             } else if (cmd.type === "right") {
-                angle += cmd.value; // Rotate clockwise
+                currentAngle += cmd.value; // Rotate clockwise
             } else if (cmd.type === "color") {
                 fillColor = cmd.value;
-                p.fill(fillColor);
+                if (isFilling) {
+                    p.fill(fillColor);
+                }
             }
+        }
+
+        // Finish filling if required
+        if (isFilling) {
+            p.vertex(currentX, currentY); // Close the fill shape
+            p.endShape(p.CLOSE);
         }
     };
 
